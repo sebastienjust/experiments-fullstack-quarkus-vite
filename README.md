@@ -50,3 +50,83 @@ Test http://localhost:5173
 
 In `frontend` let's simplify a lot of things, otherwise we won't see anything. 
 
+We will simplify CSS but not remove them, in order to test that all links are resolved.
+
+In `frontend/src/frontend/src/App.css`, keep only that:
+
+```css
+#root {
+   /* Keep border to have a visual separation from React to the native HTML page */
+   border: 1px dashed darkorange;
+   margin: 0 auto;
+   padding: 2rem;
+}
+```
+
+In `frontend/src/frontend/src/index.css`, keep only that:
+
+```css
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+```
+
+Create a component, this will test that links are resolved and we have source maps in the browser.
+
+`frontend/src/components/FirstComponent.tsx`
+
+```typescript jsx
+export function FirstComponent({message}: { message: string }) {
+   const [count, setCount] = useState(0)
+   return <div>
+      <div style={{border: "1px solid red", padding: "1em"}}>{message}</div>
+      <button onClick={() => setCount((count) => count + 1)}>
+         count is {count}
+      </button>
+   </div>
+}
+```
+
+Include your component in the App and simplify App.tsx (we keep images to test image resolution later).
+
+```typescript jsx
+import reactLogo from './assets/react.svg'
+import viteLogo from '/vite.svg'
+import './App.css'
+import {FirstComponent} from "./components/FirstComponent.tsx";
+
+function App() {
+  return (
+    <>
+      <div>
+        <a href="https://vite.dev" target="_blank">
+          <img src={viteLogo} className="logo" alt="Vite logo" />
+        </a>
+        <a href="https://react.dev" target="_blank">
+          <img src={reactLogo} className="logo react" alt="React logo" />
+        </a>
+      </div>
+      <h1>Vite + React</h1>
+      <FirstComponent message={"Initial message !!!"} />
+    </>
+  )
+}
+
+export default App
+```
+
+🚩 You can commit and push if it works
+
+
+
