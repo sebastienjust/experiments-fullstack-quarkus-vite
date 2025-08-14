@@ -161,18 +161,24 @@ Keep the template to minimum, so we can start playing.
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
    <title>Hello {name ?: "Qute"}</title>
-   {scriptsHeader ?: ""}
+   {scriptsHeader.raw}
 </head>
 <body>
 <h1>Hello <b>{name ?: "Qute"}</b></h1>
 <div id="root"></div>
 <footer>Footer of the page</footer>
-{scriptsFooter ?: ""}
+{scriptsFooter.raw}
 </body>
 </html>
 ```
 
-`{scriptsHeader}` and `{scriptsFooter}` will later contain references to your Javascript. We also add `<div id="root"></div>` to tell the frontend App where to start writing React. Note that we intentionally keep the Hello message and add a footer at screen to visualize where React is written. 
+`{scriptsHeader.raw}` and `{scriptsFooter.raw}` will later contain references to your Javascript. 
+We also add `<div id="root"></div>` to tell the frontend App where to start writing React.
+
+Note that we use the `{xxx.raw}` notation to avoid Qute html-escaping our Strings.
+
+Note that we intentionally keep the Hello message and add a footer at screen to visualize 
+where React is written. 
 
 Reload the page, http://localhost:8081/some-page, you should see "Hello Qute"
 
@@ -187,5 +193,59 @@ So, now, Quarkus can push data directly to the page. We can adjust title and wha
 What interests us now is to fuse in development so we can start coding. 
 But also, we need to prepare for production (a little, step by step).
 
+This is a first iteration and everything won't work. The goal is to show the principles.
+
 First we need to inject in the webpage references to Vite live server. 
 
+To do that, we need to follow Vite documentation on [Backend integration](https://vite.dev/guide/backend-integration.html). 
+
+```kotlin
+@Path("/some-page")
+class SomePage(@param:Location("some-page") val page: Template) {
+
+    @Inject
+    private lateinit var config: SmallRyeConfig
+
+    fun isDev(): Boolean {
+        return config.profiles.contains("dev")
+    }
+
+    @GET
+    @Produces(MediaType.TEXT_HTML)
+    operator fun get(@QueryParam("name") name: String?): TemplateInstance {
+        val viteDevServerURL = "http://localhost:5173"
+
+        val scriptsHeader = if (isDev()) $$"""
+            <script type="module">
+              import RefreshRuntime from '$${viteDevServerURL}/@react-refresh'
+              RefreshRuntime.injectIntoGlobalHook(window)
+              window.$RefreshReg$ = () => {}
+              window.$RefreshSig$ = () => (type) => type
+              window.__vite_plugin_react_preamble_installed__ = true
+            </script>
+            <script type="module" src="$${viteDevServerURL}/@vite/client"></script>
+        """.trimIndent()
+        else null
+
+        val scriptsFooter = if (isDev()) $$"""
+            <script type="module" src="$${viteDevServerURL}/src/main.tsx"></script>
+        """.trimIndent() else null
+
+        return page.data("name", name).data("scriptsHeader", scriptsHeader).data("scriptsFooter", scriptsFooter)
+    }
+}
+```
+
+Notes
+
+- We Inject SmallRyeConfig to detect if we are in development mode or not
+- script for header and footer are filled considering Vite's documentation.
+- Note the use of double escape in Kotlin ($$) to avoid problems related to $ in the script's snippet.
+
+Ok this is ugly and it works, except for static assets.
+
+You can now play with your component, it will use HMR to refresh the webpage, develop new pages and let's go. 
+
+We have never been so close to the end. 
+
+🚩 You can commit and push if it works

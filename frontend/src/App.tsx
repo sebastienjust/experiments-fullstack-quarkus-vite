@@ -15,7 +15,7 @@ function App() {
         </a>
       </div>
       <h1>Vite + React</h1>
-      <FirstComponent message={"Initial message !!!"} />
+      <FirstComponent message={"Initial message !"} />
     </>
   )
 }
