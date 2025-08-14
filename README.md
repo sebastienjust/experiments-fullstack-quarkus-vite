@@ -128,5 +128,64 @@ export default App
 
 🚩 You can commit and push if it works
 
+## Backend webpage template
 
+Quarkus gives you an example webpage in /some-page. Let's adjust it. 
+
+```kotlin
+@Path("/some-page")
+class SomePage(@param:Location("some-page") val page: Template) {
+
+    @GET
+    @Produces(MediaType.TEXT_HTML)
+    operator fun get(@QueryParam("name") name: String?): TemplateInstance {
+        return page.data("name", name).data("scriptsHeader", null).data("scriptsFooter", null)
+    }
+}
+```
+
+We added the `@Location` annotation because just determining the name of a template by a parameter name is a big danger. 
+
+Also rename `src/main/resources/templates/page.qute.html` to `src/main/resrouces/templates/som-page.qute.html`
+
+Go to http://localhost:8081/some-page and it should work. 
+
+Keep the template to minimum, so we can start playing.
+
+`src/main/resources/templates/some-page.qute.html`
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+   <title>Hello {name ?: "Qute"}</title>
+   {scriptsHeader ?: ""}
+</head>
+<body>
+<h1>Hello <b>{name ?: "Qute"}</b></h1>
+<div id="root"></div>
+<footer>Footer of the page</footer>
+{scriptsFooter ?: ""}
+</body>
+</html>
+```
+
+`{scriptsHeader}` and `{scriptsFooter}` will later contain references to your Javascript. We also add `<div id="root"></div>` to tell the frontend App where to start writing React. Note that we intentionally keep the Hello message and add a footer at screen to visualize where React is written. 
+
+Reload the page, http://localhost:8081/some-page, you should see "Hello Qute"
+
+Then play with URL parameters http://localhost:8081/some-page?name=Call%20me%20by%20YourName for example, and you should see "Hello Call me by YourName".
+
+So, now, Quarkus can push data directly to the page. We can adjust title and what we need. Later we will push data to the React component.
+
+🚩 You can commit and push if it works
+
+## Fusion 👉👈 (in development mode)
+
+What interests us now is to fuse in development so we can start coding. 
+But also, we need to prepare for production (a little, step by step).
+
+First we need to inject in the webpage references to Vite live server. 
 
