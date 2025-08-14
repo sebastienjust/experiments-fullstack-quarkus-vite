@@ -249,3 +249,31 @@ You can now play with your component, it will use HMR to refresh the webpage, de
 We have never been so close to the end. 
 
 🚩 You can commit and push if it works
+
+## Module preload polyfill
+
+Now, you need to adjust your App.tsx to include this : 
+
+```typescript
+// add the beginning of your app entry
+import 'vite/modulepreload-polyfill' 
+```
+
+## Static assets (development mode)
+
+Adjust vite configuration to serve static assets directly from Vite's server. 
+
+
+In `vite.config.ts` : 
+
+```typescript
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    origin: "http://localhost:5173",
+  }
+})
+```
