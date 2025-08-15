@@ -5,6 +5,7 @@ import io.quarkus.qute.Template
 import io.quarkus.qute.TemplateInstance
 import io.smallrye.config.SmallRyeConfig
 import jakarta.inject.Inject
+import jakarta.json.Json
 import jakarta.ws.rs.GET
 import jakarta.ws.rs.Path
 import jakarta.ws.rs.Produces
@@ -42,7 +43,17 @@ class SomePage(@param:Location("some-page") val page: Template) {
             <script type="module" src="$${viteDevServerURL}/src/main.tsx"></script>
         """.trimIndent() else null
 
-        return page.data("name", name).data("scriptsHeader", scriptsHeader).data("scriptsFooter", scriptsFooter)
+        val initialJson = Json.createObjectBuilder()
+            .add("name", name ?: "Unknown")
+            .add("dangertest", "<script>alert('ATTACK XSS')</script>")
+            .build()
+            .toString()
+            .replace("<", "\\u003c")
+
+        return page.data("name", name)
+            .data("scriptsHeader", scriptsHeader)
+            .data("scriptsFooter", scriptsFooter)
+            .data("initialJson", initialJson)
     }
 
 }

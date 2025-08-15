@@ -277,3 +277,68 @@ export default defineConfig({
   }
 })
 ```
+
+## Push data to the front
+
+The goal is to have the backend manage routing. When backend had some clues on where to go next and what
+data provide to the front, you need to pass down this data. 
+
+One common pattern is to write a Javascript string directly in the webpage. 
+
+First, from the `SomePage.kt`, send Json to the page template:
+
+```kotlin
+ val initialJson = Json.createObjectBuilder()
+   .add("name", name ?: "Unknown")
+   .add("dangertest", "<script>alert('ATTACK XSS')</script>")
+   .build()
+   .toString()
+   .replace("<", "\\u003c")
+return page.data("name", name)
+   .data("scriptsHeader", scriptsHeader)
+   .data("scriptsFooter", scriptsFooter)
+   .data("initialJson", initialJson)
+```
+
+Note that this examples tries to add an XSS attack using a `<script>` element. 
+
+Then, ajust the template `some-page.qute.html` to accept this Json, and write it in the webpage inside
+a `<script type="application/json" id="__INITIAL_DATA__">` tag.
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+   <title>Hello {name ?: "Qute"}</title>
+   {scriptsHeader.raw}
+   {#if initialJson}<script type="application/json" id="__INITIAL_DATA__">{initialJson.raw}</script>{/if}
+</head>
+<body>
+<h1>Hello <b>{name ?: "Qute"}</b></h1>
+<div id="root"></div>
+<footer>Footer of the page</footer>
+{scriptsFooter.raw}
+</body>
+</html>
+```
+
+Finally read the initial Json in frontend: (`App.tsx`) 
+
+```typescript jsx
+const initialDataJsonStr = document.getElementById("__INITIAL_DATA__")?.textContent
+const initialData = initialDataJsonStr ? JSON.parse(initialDataJsonStr) : {}
+function App() {
+    // ...
+   return (
+           // ...
+           <FirstComponent message={"Initial data: " + JSON.stringify(initialData)}/>
+           // ...
+   )
+}
+```
+
+Now you should be hable to handle server sent initial data.
+
+
