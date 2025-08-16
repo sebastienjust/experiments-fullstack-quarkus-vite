@@ -11,7 +11,7 @@ TypeScript) is built as static assets and hydrated client-side.
 
 This is not new, it is a proven model — one backend, one pipeline — modernized with fast bundling, hot reload, and
 component-based UIs. The goal is to show that in 2025 this approach is still relevant, efficient, and often cheaper to
-operate.
+operate (no CDN needed, no extra-BFF, no duplicated CI/CD pipelines, single monitoring, etc.)
 
 ### Why this approach
 
@@ -547,7 +547,7 @@ variable in your application launcher.
 Create a new launcher in IntelliJ for your project or be careful to have an environment variable named
 `myapp.frontend.dist=pathto/frontend/dist` in your Shell when you launch `./gradlew quarkusRun`.
 
-Now we can complete our PageScriptBuild for production.
+Now we can complete our PageScriptBuild for production (the factory had been adjusted too, see the codebase [PageScripts.kt](src/main/kotlin/net/seij/experiments/fullstackquarkusvite/config/PageScripts.kt)).
 
 ```kotlin 
 class PageScriptsBuild(val entry: String, val manifestReader: ViteManifestReader) : PageScripts {
@@ -569,20 +569,28 @@ class PageScriptsBuild(val entry: String, val manifestReader: ViteManifestReader
 Now we need to serve static resources. In this example, with Quarkus,
 we can configure the web server (Vertx) to handle routes to our built assets.
 
-```kotlin 
+```kotlin
 class StaticResources {
 
     fun installRoute(@Observes startupEvent: StartupEvent, router: Router) {
         val path = ConfigProvider.getConfig().getConfigValue("myapp.frontend.dist").rawValue
+
+        fun makeHandler(subpath: String) = StaticHandler
+            .create(FileSystemAccess.ROOT, "$path/$subpath")
+            .setCachingEnabled(true)
+            .setMaxAgeSeconds(31536000)
+            .setAlwaysAsyncFS(true)
+            .setIncludeHidden(false)
+
         router
             .route()
             .path("/assets/*")
-            .handler(StaticHandler.create(FileSystemAccess.ROOT, "$path/assets"))
+            .handler(makeHandler("assets"))
 
         router
             .route()
             .path("/vite.svg")
-            .handler(StaticHandler.create(FileSystemAccess.ROOT, "$path/vite.svg"))
+            .handler(makeHandler("vite.svg"))
     }
 }
 ```
@@ -604,6 +612,11 @@ java -jar build/quarkus-app/quarkus-run.jar
 ```
 
 Open http://localhost:8080/some-page to verify.
+
+Please note how static assets are now cached using the Network pane of Chrome Dev Tools.
+
+You should also add gzip compression in `application.properties` as recommended by Quarkus (be careful that some
+work is required to make Vert.x compress static assets in gzip or Brotli). 
 
 🚩 Checkpoint: commit and push
 
@@ -639,6 +652,19 @@ give an error.
 
 🚩 Checkpoint: commit and push
 
+## Additional notes about Quarkus and Quinoa
 
+The goal of this project is to demonstrate a backend-driven full-stack pattern without depending on any specific
+framework.
 
+In fact, Quarkus already provides a plugin called Quinoa, which streamlines the whole integration: by adding it and
+tweaking a few parameters, you can achieve the same (or even better) results.
 
+We chose not to rely on it here, intentionally, to keep the example framework-agnostic and focused on the general approach rather than a Quarkus-specific
+feature.
+
+## Other bundlers and HMR and manifests
+
+The approach is not tied to Vite. Webpack and some other bundlers provide their own dev server and HMR runtime, as well as
+tooling for generating Manifest files. The backend can inject their client scripts in development, just like with Vite. 
+In production, the principle is identical: read manifest and serve hashed static assets from the backend.

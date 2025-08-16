@@ -11,14 +11,22 @@ class StaticResources {
 
     fun installRoute(@Observes startupEvent: StartupEvent, router: Router) {
         val path = ConfigProvider.getConfig().getConfigValue("myapp.frontend.dist").rawValue
+
+        fun makeHandler(subpath: String) = StaticHandler
+            .create(FileSystemAccess.ROOT, "$path/$subpath")
+            .setCachingEnabled(true)
+            .setMaxAgeSeconds(31536000)
+            .setAlwaysAsyncFS(true)
+            .setIncludeHidden(false)
+
         router
             .route()
             .path("/assets/*")
-            .handler ( StaticHandler.create(FileSystemAccess.ROOT, "$path/assets") )
+            .handler(makeHandler("assets"))
 
         router
             .route()
             .path("/vite.svg")
-            .handler ( StaticHandler.create(FileSystemAccess.ROOT, "$path/vite.svg") )
+            .handler(makeHandler("vite.svg"))
     }
 }
