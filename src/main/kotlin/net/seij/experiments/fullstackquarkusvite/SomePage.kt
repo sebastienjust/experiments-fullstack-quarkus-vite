@@ -12,6 +12,10 @@ import jakarta.ws.rs.Path
 import jakarta.ws.rs.Produces
 import jakarta.ws.rs.QueryParam
 import jakarta.ws.rs.core.MediaType
+import net.seij.experiments.fullstackquarkusvite.config.PageScripts
+import net.seij.experiments.fullstackquarkusvite.config.PageScriptsBuild
+import net.seij.experiments.fullstackquarkusvite.config.PageScriptsDev
+import net.seij.experiments.fullstackquarkusvite.config.ViteManifestReader
 
 @Path("/some-page")
 class SomePage @Inject constructor(
@@ -41,58 +45,27 @@ class SomePage @Inject constructor(
 
 }
 
+
 @ApplicationScoped
 class PageScriptsFactory() {
     @Inject
     private lateinit var config: SmallRyeConfig
 
+    @Inject
+    private lateinit var manifestReader: ViteManifestReader
+
     val viteDevServerURL = "http://localhost:5173"
+
 
     fun isDev(): Boolean {
         return config.profiles.contains("dev")
     }
 
-    fun scripts(): PageScripts {
+    fun scripts(entry: String = "main"): PageScripts {
         return if (isDev()) {
-            PageScriptsDev(viteDevServerURL)
+            PageScriptsDev(viteDevServerURL, entry)
         } else {
-            PageScriptsBuild()
+            PageScriptsBuild(entry, manifestReader)
         }
-    }
-}
-
-sealed interface PageScripts {
-    fun scriptsHeader(): String
-    fun scriptsFooter(): String
-}
-
-class PageScriptsDev(val viteDevServerURL: String) : PageScripts {
-    override fun scriptsHeader(): String {
-        return $$"""
-            <script type="module">
-              import RefreshRuntime from '$${viteDevServerURL}/@react-refresh'
-              RefreshRuntime.injectIntoGlobalHook(window)
-              window.$RefreshReg$ = () => {}
-              window.$RefreshSig$ = () => (type) => type
-              window.__vite_plugin_react_preamble_installed__ = true
-            </script>
-            <script type="module" src="$${viteDevServerURL}/@vite/client"></script>
-        """.trimIndent()
-    }
-
-    override fun scriptsFooter(): String {
-        return $$"""
-            <script type="module" src="$${viteDevServerURL}/src/main.tsx"></script>
-        """.trimIndent()
-    }
-}
-
-class PageScriptsBuild() : PageScripts {
-    override fun scriptsHeader(): String {
-        return """<script type="text/javascript">alert("production mode not implemented yet")</script>"""
-    }
-
-    override fun scriptsFooter(): String {
-        return ""
     }
 }
