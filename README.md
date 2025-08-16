@@ -1,5 +1,37 @@
 # seij-experiments fullstack-vite-quarkus
 
+In today’s landscape, most tutorials assume either a pure SPA served from a CDN with a backend reduced to APIs, or a full-stack JS framework like Next.js or Remix.  
+This repository shows another path: a **classic fullstack approach, modernized**. A backend server still owns routing, security, and page delivery, while a React frontend (built with Vite) is served as static assets and hydrated client-side.
+
+Here Quarkus is used as an example, but the principle applies to any backend framework or language: Spring, WildFly, JBoss, Ktor, Express, Django, Rails… The point is that you don’t need an all-in-one fullstack JS framework to combine a backend and a modern frontend. The composition works well in general, and it only took about a day to put this tutorial together while (re)learning the tools.
+
+Why this matters:
+- A single deployable artifact, with the backend deciding URLs, statuses, and access rules.
+- No need to multiply runtimes and DevOps chains when a team already has a backend ecosystem.
+- Developers keep a simple mental model: one server, one deployment, one source of truth.
+- You still benefit from modern frontend DX (TypeScript, HMR, optimized bundles).
+
+This is not a universal answer: SSR or static generation may be better for heavy SEO, and fullstack JS may suit teams fully invested in Node. But for many contexts, a backend-driven fullstack remains a viable, efficient option in 2025.
+
+The tutorial is written as a step-by-step path with checkpoints 🚩. It’s both a notebook and a guide for anyone curious to see how far this model can go with today’s tools.
+
+
+## Table of Contents
+
+1. [Prerequisites](#prerequisites)
+2. [Installation process](#installation-process)
+    - [Java/Kotlin + Quarkus + Gradle](#javakotlin--quarkus--gradle)
+    - [Typescript + Vite + pnpm](#typescript--vite--pnpm)
+    - [Cleanup the mess from Vite samples](#cleanup-the-mess-from-vite-samples)
+3. [Backend webpage template](#backend-webpage-template)
+4. [Fusion (in development mode)](#fusion--in-development-mode)
+5. [Module preload polyfill](#module-preload-polyfill)
+6. [Static assets (development mode)](#static-assets-development-mode)
+7. [Push data to the front](#push-data-to-the-front)
+8. [Prepare for build mode: separate dev and build](#prepare-for-build-mode-separate-dev-and-build)
+9. [Static assets in production mode](#static-assets-in-production-mode)
+10. [Instructions for shipping in Docker](#instructions-for-shipping-in-docker)
+
 ## Prerequisites
 
 - Java 21 installed (using https://sdkman.io/ for example)
@@ -146,9 +178,9 @@ class SomePage(@param:Location("some-page") val page: Template) {
 
 We added the `@Location` annotation because just determining the name of a template by a parameter name is a big danger.
 
-Also rename `src/main/resources/templates/page.qute.html` to `src/main/resrouces/templates/som-page.qute.html`
+Also rename `src/main/resources/templates/page.qute.html` to `src/main/resrouces/templates/some-page.qute.html`
 
-Go to http://localhost:8081/some-page and it should work.
+Go to http://localhost:8080/some-page and it should work.
 
 Keep the template to minimum, so we can start playing.
 
@@ -180,9 +212,9 @@ Note that we use the `{xxx.raw}` notation to avoid Qute html-escaping our String
 Note that we intentionally keep the Hello message and add a footer at screen to visualize
 where React is written.
 
-Reload the page, http://localhost:8081/some-page, you should see "Hello Qute"
+Reload the page, http://localhost:8080/some-page, you should see "Hello Qute"
 
-Then play with URL parameters http://localhost:8081/some-page?name=Call%20me%20by%20YourName for example, and you should
+Then play with URL parameters http://localhost:8080/some-page?name=Call%20me%20by%20YourName for example, and you should
 see "Hello Call me by YourName".
 
 So, now, Quarkus can push data directly to the page. We can adjust title and what we need. Later we will push data to
@@ -613,9 +645,10 @@ docker run -i --rm -p 8080:8080 quarkus/fullstack-demo-jvm .
 
 To go http://localhost:8080/some-page and check if it's ok (flush your browser cache first).
 Then check that Quarkus DEV UI is not present anymore http://localhost:8080/q/dev-ui/welcome should
-give an error. 
+give an error.
 
 🚩 You can commit and push if it works
+
 
 
 
