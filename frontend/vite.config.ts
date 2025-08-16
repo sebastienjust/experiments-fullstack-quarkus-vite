@@ -5,5 +5,11 @@ export default defineConfig({
   plugins: [react()],
   server: {
     origin: "http://localhost:5173",
+  },
+  build: {
+      manifest: true, rollupOptions: {
+      // overwrite default .html entry
+      input: '/src/main.tsx',
+    },
   }
 })
