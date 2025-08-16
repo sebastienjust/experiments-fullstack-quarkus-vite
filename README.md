@@ -339,6 +339,13 @@ function App() {
 }
 ```
 
-Now you should be hable to handle server sent initial data.
+Now you should be able to handle server-sent initial data.
+
+🚩 You can commit and push if it works
+
+## Full build (manual)
+
+Now, the goal is to merge everything so that when you build the project
+everything comes together. 
 
 
