@@ -1,20 +1,39 @@
 # seij-experiments fullstack-vite-quarkus
 
-In today’s landscape, most tutorials assume either a pure SPA served from a CDN with a backend reduced to APIs, or a full-stack JS framework like Next.js or Remix.  
-This repository shows another path: a **classic fullstack approach, modernized**. A backend server still owns routing, security, and page delivery, while a React frontend (built with Vite) is served as static assets and hydrated client-side.
+Modern frontend–backend development is often framed as a choice between two models:
+– Single Page Applications hosted on a CDN, with the backend reduced to APIs.
+– Full-stack JavaScript frameworks such as Next.js or Remix.
 
-Here Quarkus is used as an example, but the principle applies to any backend framework or language: Spring, WildFly, JBoss, Ktor, Express, Django, Rails… The point is that you don’t need an all-in-one fullstack JS framework to combine a backend and a modern frontend. The composition works well in general, and it only took about a day to put this tutorial together while (re)learning the tools.
+Both solve real problems, but they are not the only options. This project explores another path: a backend-driven
+full-stack architecture, updated with today’s frontend practices. The backend (here Quarkus, but it could be Spring,
+Django, Rails, etc.) remains in charge of routing, access rules, and page delivery, while the frontend (React + Vite +
+TypeScript) is built as static assets and hydrated client-side.
 
-Why this matters:
-- A single deployable artifact, with the backend deciding URLs, statuses, and access rules.
-- No need to multiply runtimes and DevOps chains when a team already has a backend ecosystem.
-- Developers keep a simple mental model: one server, one deployment, one source of truth.
-- You still benefit from modern frontend DX (TypeScript, HMR, optimized bundles).
+This is not new, it is a proven model — one backend, one pipeline — modernized with fast bundling, hot reload, and
+component-based UIs. The goal is to show that in 2025 this approach is still relevant, efficient, and often cheaper to
+operate.
 
-This is not a universal answer: SSR or static generation may be better for heavy SEO, and fullstack JS may suit teams fully invested in Node. But for many contexts, a backend-driven fullstack remains a viable, efficient option in 2025.
+### Why this approach
 
-The tutorial is written as a step-by-step path with checkpoints 🚩. It’s both a notebook and a guide for anyone curious to see how far this model can go with today’s tools.
+Most teams already run a backend. Adding a second runtime just to serve a React app introduces extra cost and
+complexity: new servers to host, new pipelines to maintain, more skills to recruit, more points of failure to watch. By
+letting the backend also serve pages and assets, you:
 
+– keep a single source of truth for routing and security,
+– reuse existing deployment pipelines and monitoring,
+– reduce operational overhead and infrastructure spend,
+– simplify collaboration between backend and frontend teams.
+
+The result is a familiar mental model — easy to understand, easy to run — but with a modern developer experience. It is
+not a universal recipe: SEO-heavy sites may prefer SSR or static generation, and Node-centric stacks remain valid where
+teams are fully invested in them. But in many enterprise and product contexts, backend-driven full-stack applications
+strike a balance between speed, cost, and sustainability.
+
+### About this tutorial
+
+The tutorial is organized as a sequence of checkpoints 🚩. It is not a React, Vite, or Quarkus lesson, but a practical
+guide on how to integrate them into a coherent backend-driven stack, so teams can adopt modern frontend workflows
+without fragmenting their architecture.
 
 ## Table of Contents
 
@@ -24,7 +43,7 @@ The tutorial is written as a step-by-step path with checkpoints 🚩. It’s bot
     - [Typescript + Vite + pnpm](#typescript--vite--pnpm)
     - [Cleanup the mess from Vite samples](#cleanup-the-mess-from-vite-samples)
 3. [Backend webpage template](#backend-webpage-template)
-4. [Fusion (in development mode)](#fusion--in-development-mode)
+4. [Fusion (in development mode)](#fusion-in-development-mode)
 5. [Module preload polyfill](#module-preload-polyfill)
 6. [Static assets (development mode)](#static-assets-development-mode)
 7. [Push data to the front](#push-data-to-the-front)
@@ -48,7 +67,7 @@ The tutorial is written as a step-by-step path with checkpoints 🚩. It’s bot
 4. Select
     - quarkus-rest (because we have a REST API)
     - quarkus-rest-qute (to generate HTML pages with templates)
-    - quarkus-kotlin (because we like it)
+    - quarkus-kotlin (to enable Kotlin support)
 5. Download and unzip
 
 Test that it works: `./gradlew quarkusDev`
@@ -60,7 +79,7 @@ Test that it works: `./gradlew quarkusDev`
 Stop it. Open with your IDE. Launch with your IDE in debug mode. Test again with a breakpoint in one of the classes in
 `src/main/kotlin`.
 
-🚩 You can commit and push
+🚩 Checkpoint: commit and push
 
 ### Typescript + Vite + pnpm
 
@@ -76,43 +95,16 @@ pnpm run dev
 
 Test http://localhost:5173
 
-🚩 You can commit and push
+🚩 Checkpoint: commit and push
 
 ### Cleanup the mess from Vite samples
 
-In `frontend` let's simplify a lot of things, otherwise we won't see anything.
+In `frontend` simplify the Vite sample code to reduce noise and focus on integration.
 
 We will simplify CSS but not remove them, in order to test that all links are resolved.
 
-In `frontend/src/frontend/src/App.css`, keep only that:
-
-```css
-#root {
-    /* Keep border to have a visual separation from React to the native HTML page */
-    border: 1px dashed darkorange;
-    margin: 0 auto;
-    padding: 2rem;
-}
-```
-
-In `frontend/src/frontend/src/index.css`, keep only that:
-
-```css
-:root {
-    font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-    line-height: 1.5;
-    font-weight: 400;
-
-    color-scheme: light dark;
-    color: rgba(255, 255, 255, 0.87);
-    background-color: #242424;
-
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-```
+Simplify [App.css](frontend/src/App.css) and [index.css](frontend/src/index.css) to keep only minimal styles (border,
+font family, background).
 
 Create a component, this will test that links are resolved and we have source maps in the browser.
 
@@ -158,7 +150,7 @@ function App() {
 export default App
 ```
 
-🚩 You can commit and push if it works
+🚩 Checkpoint: commit and push
 
 ## Backend webpage template
 
@@ -176,13 +168,13 @@ class SomePage(@param:Location("some-page") val page: Template) {
 }
 ```
 
-We added the `@Location` annotation because just determining the name of a template by a parameter name is a big danger.
+We added the `@Location` annotation because relying only on a parameter name to resolve a template is unsafe.
 
-Also rename `src/main/resources/templates/page.qute.html` to `src/main/resrouces/templates/some-page.qute.html`
+Also rename `src/main/resources/templates/page.qute.html` to `src/main/resources/templates/some-page.qute.html`
 
-Go to http://localhost:8080/some-page and it should work.
+Verify at http://localhost:8080/some-page.
 
-Keep the template to minimum, so we can start playing.
+Keep the template minimal to focus on integration.
 
 `src/main/resources/templates/some-page.qute.html`
 
@@ -204,7 +196,7 @@ Keep the template to minimum, so we can start playing.
 </html>
 ```
 
-`{scriptsHeader.raw}` and `{scriptsFooter.raw}` will later contain references to your Javascript.
+`{scriptsHeader.raw}` and `{scriptsFooter.raw}` will later contain references to your JavaScript.
 We also add `<div id="root"></div>` to tell the frontend App where to start writing React.
 
 Note that we use the `{xxx.raw}` notation to avoid Qute html-escaping our Strings.
@@ -214,20 +206,19 @@ where React is written.
 
 Reload the page, http://localhost:8080/some-page, you should see "Hello Qute"
 
-Then play with URL parameters http://localhost:8080/some-page?name=Call%20me%20by%20YourName for example, and you should
-see "Hello Call me by YourName".
+Try adding URL parameters to verify dynamic rendering, for example: `?name=YourName`.
 
 So, now, Quarkus can push data directly to the page. We can adjust title and what we need. Later we will push data to
 the React component.
 
-🚩 You can commit and push if it works
+🚩 Checkpoint: commit and push
 
-## Fusion 👉👈 (in development mode)
+## Fusion (in development mode)
 
 What interests us now is to fuse in development so we can start coding.
 But also, we need to prepare for production (a little, step by step).
 
-This is a first iteration and everything won't work. The goal is to show the principles.
+This first iteration will not cover all cases. The goal is to show the principles.
 
 First we need to inject in the webpage references to Vite live server.
 
@@ -273,17 +264,15 @@ class SomePage(@param:Location("some-page") val page: Template) {
 
 Notes
 
-- We Inject SmallRyeConfig to detect if we are in development mode or not
+- We `@Inject` SmallRyeConfig to detect if we are in development mode or not
 - script for header and footer are filled considering Vite's documentation.
 - Note the use of double escape in Kotlin ($$) to avoid problems related to $ in the script's snippet.
 
-Ok this is ugly and it works, except for static assets.
+This implementation works, but static assets are not yet handled.
 
-You can now play with your component, it will use HMR to refresh the webpage, develop new pages and let's go.
+Components now support Hot Module Replacement (HMR).
 
-We have never been so close to the end.
-
-🚩 You can commit and push if it works
+🚩 Checkpoint: commit and push
 
 ## Module preload polyfill
 
@@ -317,7 +306,7 @@ export default defineConfig({
 The goal is to have the backend manage routing. When backend had some clues on where to go next and what
 data provide to the front, you need to pass down this data.
 
-One common pattern is to write a Javascript string directly in the webpage.
+One common pattern is to write a JavaScript string directly in the webpage.
 
 First, from the `SomePage.kt`, send Json to the page template:
 
@@ -336,7 +325,7 @@ return page.data("name", name)
 
 Note that this examples tries to add an XSS attack using a `<script>` element.
 
-Then, ajust the template `some-page.qute.html` to accept this Json, and write it in the webpage inside
+Then, adjust the template `some-page.qute.html` to accept this Json, and write it in the webpage inside
 a `<script type="application/json" id="__INITIAL_DATA__">` tag.
 
 ```html
@@ -378,7 +367,7 @@ function App() {
 
 Now you should be able to handle server-sent initial data.
 
-🚩 You can commit and push if it works
+🚩 Checkpoint: commit and push
 
 ## Prepare for build mode: separate dev and build
 
@@ -501,7 +490,7 @@ To be sure that everything works:
     - `./gradlew quarkusRun`
     - open http://localhost:8080/some-page and you should get "production mode not implemented" alert
 
-🚩 You can commit and push if it works
+🚩 Checkpoint: commit and push
 
 ## Static assets in production mode
 
@@ -541,17 +530,18 @@ export default defineConfig({
 })
 ```
 
-Remember that everything is explained in Vite documentation and you have
-a lot of ways to do that (customize, have many entry points, etc.)
+Remember that everything is explained in Vite documentation and you have several possible approaches;
+others may better suit your needs.
 
 Now run `pnpm run build` and you will see Vite's manifest generated in
-`frontend/dist/.vite/manifest.json`
+`frontend/dist/.vite/manifest.json`.
 
-Next we need the server to read and interpret this manifest.
+Next, we need the server to read and interpret this manifest.
 
 In the source code of this project, look
 at [ViteManifestReader.kt](src/main/kotlin/net/seij/experiments/fullstackquarkusvite/config/ViteManifestReader.kt)
-an utility class you can @Inject. To locate the manifest, you need to an **absolute path to frontend/dist** environment
+a utility class you can @Inject. To locate the manifest, you need to provide an **absolute path to frontend/dist**
+environment
 variable in your application launcher.
 
 Create a new launcher in IntelliJ for your project or be careful to have an environment variable named
@@ -613,13 +603,13 @@ export MYAPP_FRONTEND_DIST=$(pwd)/frontend/dist
 java -jar build/quarkus-app/quarkus-run.jar
 ```
 
-Go to http://localhost:8080/some-page
+Open http://localhost:8080/some-page to verify.
 
-🚩 You can commit and push if it works
+🚩 Checkpoint: commit and push
 
 ## Instructions for shipping in Docker
 
-Then you will want to ship everything in a Docker-like container. There are Dockerfiles here you can build (the ones
+To deploy, package everything in a Docker container. There are Dockerfiles here you can build (the ones
 given by Quarkus). Adjust them to copy the dist/ directory in the container.
 
 First, allow Docker to copy files from dist/ in the container. Adjust the .dockerignore file.
@@ -629,7 +619,7 @@ frontend/**
 !frontend/dist/**
 ```
 
-Make Docker copy your dist/ inside the container by modifying the DockerFile
+Copy the `dist/` directory inside the container by modifying the DockerFile
 
 ```dockerfile
 COPY --chown=185 frontend/dist /deployments/frontend/dist/
@@ -643,11 +633,11 @@ docker build -f src/main/docker/Dockerfile.jvm -t quarkus/fullstack-demo-jvm .
 docker run -i --rm -p 8080:8080 quarkus/fullstack-demo-jvm .
 ```
 
-To go http://localhost:8080/some-page and check if it's ok (flush your browser cache first).
+Go to http://localhost:8080/some-page and verify the result. Clear your browser cache before testing.
 Then check that Quarkus DEV UI is not present anymore http://localhost:8080/q/dev-ui/welcome should
 give an error.
 
-🚩 You can commit and push if it works
+🚩 Checkpoint: commit and push
 
 
 
