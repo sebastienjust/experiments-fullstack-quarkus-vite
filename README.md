@@ -615,7 +615,7 @@ To go http://localhost:8080/some-page and check if it's ok (flush your browser c
 Then check that Quarkus DEV UI is not present anymore http://localhost:8080/q/dev-ui/welcome should
 give an error. 
 
-
+🚩 You can commit and push if it works
 
 
 
